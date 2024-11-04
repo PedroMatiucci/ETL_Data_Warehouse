@@ -2,6 +2,11 @@ from transform import *
 from load import *
 from extract import *
 
+
+#Todo Criar as Databases do Bigquery
+#Todo Atualizar a Criacao Das Tabelas
+#Todo Adequear a transformacao para os Dados que escolhemos
+#Todo Criar o Extract para os dados de Natalidade
 def etl_nascidos_vivos(file_key):
     file_key = "keys/ml-na-saude-ed1fc3c1a83e.json"
     dataset_name = "nascidos_vivos"

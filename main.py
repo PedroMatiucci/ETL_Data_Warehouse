@@ -5,8 +5,8 @@ from extract import *
 
 #Todo Criar as Databases do Bigquery
 #Todo Atualizar a Criacao Das Tabelas
-#Todo Adequear a transformacao para os Dados que escolhemos
-#Todo Criar o Extract para os dados de Natalidade
+#Todo Adequear a transformacao para os Dados que escolhemos(Pegar nos Slides as Novas Colunas)
+#Todo Criar o Extract para os dados de Natalidade(Testar)
 def etl_nascidos_vivos(file_key):
     dataset_name = "nascidos_vivos"
     data_folder_mortalidade = "DadosNascidosVivos"

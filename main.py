@@ -8,7 +8,7 @@ from extract import *
 #Todo Adequear a transformacao para os Dados que escolhemos(Pegar nos Slides as Novas Colunas)
 #Todo Criar o Extract para os dados de Natalidade(Testar)
 def etl_nascidos_vivos(file_key):
-    dataset_name = "nascidos_vivos"
+    dataset_name = "mortalidade_infantil"
     data_folder_mortalidade = "DadosNascidosVivos"
 
     # Conexão com GCP
@@ -43,10 +43,114 @@ def etl_mortalidade(file_key):
     tables_dfs = {table_mortalidade: df_mortalidade}
     load_data(tables_dfs, client, dataset_fonte)
 
+def etl_tempo(file_key):
+    dataset_name = "mortalidade_infantil"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de tempo já existe, se não, cria
+    table_tempo = table_exist_tempo(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão tempo
+    df_tempo = create_df_tempo()
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_tempo: df_tempo}
+    load_data(tables_dfs, client, dataset_fonte)
+
+# Nova função para carregar a dimensão raca
+def etl_raca(file_key):
+    dataset_name = "mortalidade_infantil"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de raca já existe, se não, cria
+    table_raca = table_exist_raca(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão raca
+    df_raca = create_df_raca()
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_raca: df_raca}
+    load_data(tables_dfs, client, dataset_fonte)
+
+# Nova função para carregar a dimensão sexo
+def etl_sexo(file_key):
+    dataset_name = "mortalidade_infantil"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de sexo já existe, se não, cria
+    table_sexo = table_exist_sexo(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão sexo
+    df_sexo = create_df_sexo()
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_sexo: df_sexo}
+    load_data(tables_dfs, client, dataset_fonte)
+
+# Nova função para carregar a dimensão municipio
+def etl_municipio(file_key):
+    dataset_name = "mortalidade_infantil"
+    data_folder_municipio = "DadosMunicipio"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de município já existe, se não, cria
+    table_municipio = table_exist_municipio(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão município
+    df_municipio = create_df_municipio(data_folder_municipio)
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_municipio: df_municipio}
+    load_data(tables_dfs, client, dataset_fonte)
+
+# Nova função para carregar a dimensão escolaridade_mae
+def etl_escolaridade_mae(file_key):
+    dataset_name = "mortalidade_infantil"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela escolaridade_mae já existe, se não, cria
+    table_escolaridade_mae = table_exist_escolaridade_mae(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão escolaridade_mae
+    df_escolaridade_mae = create_df_escolaridade_mae()
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_escolaridade_mae: df_escolaridade_mae}
+    load_data(tables_dfs, client, dataset_fonte)
 
 if __name__ == "__main__":
     file_key = "keys/datawarehouse-440722-b55120133f69.json"
-    etl_nascidos_vivos(file_key)
-    etl_mortalidade(file_key)
 
+    # etl_tempo(file_key)
+    #etl_raca(file_key)
+    #etl_sexo(file_key)
+    #etl_municipio(file_key)
+    etl_escolaridade_mae(file_key)
 
+    #etl_nascidos_vivos(file_key)
+    #etl_mortalidade(file_key)

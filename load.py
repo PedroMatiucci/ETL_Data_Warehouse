@@ -108,6 +108,124 @@ def table_exist_mortalidade(client, dataset_fonte):
 
         return table_mortalidade
 
+# Nova função para verificar e criar a tabela dim_tempo
+def table_exist_tempo(client, dataset_fonte):
+    table_tempo = dataset_fonte.table("dim_tempo")
+
+    schema_tempo = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("ano", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("mes", "INTEGER", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão tempo no GCP...")
+    try:
+        client.get_table(table_tempo, timeout=30)
+        print(f"A tabela {table_tempo} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_tempo} não encontrada! Criando tabela {table_tempo}...")
+        client.create_table(bigquery.Table(table_tempo, schema=schema_tempo))
+        print(f"A tabela {table_tempo} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_tempo
+
+# Nova função para verificar e criar a tabela dim_raca
+def table_exist_raca(client, dataset_fonte):
+    table_raca = dataset_fonte.table("dim_raca")
+
+    schema_raca = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("raca", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão raca no GCP...")
+    try:
+        client.get_table(table_raca, timeout=30)
+        print(f"A tabela {table_raca} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_raca} não encontrada! Criando tabela {table_raca}...")
+        client.create_table(bigquery.Table(table_raca, schema=schema_raca))
+        print(f"A tabela {table_raca} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_raca
+
+# Nova função para verificar e criar a tabela dim_sexo
+def table_exist_sexo(client, dataset_fonte):
+    table_sexo = dataset_fonte.table("dim_sexo")
+
+    schema_sexo = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("sexo", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão sexo no GCP...")
+    try:
+        client.get_table(table_sexo, timeout=30)
+        print(f"A tabela {table_sexo} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_sexo} não encontrada! Criando tabela {table_sexo}...")
+        client.create_table(bigquery.Table(table_sexo, schema=schema_sexo))
+        print(f"A tabela {table_sexo} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_sexo
+
+# Nova função para verificar e criar a tabela dim_municipio
+def table_exist_municipio(client, dataset_fonte):
+    table_municipio = dataset_fonte.table("dim_municipio")
+
+    schema_municipio = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("ibge", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("uf", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("municipio", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão município no GCP...")
+    try:
+        client.get_table(table_municipio, timeout=30)
+        print(f"A tabela {table_municipio} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_municipio} não encontrada! Criando tabela {table_municipio}...")
+        client.create_table(bigquery.Table(table_municipio, schema=schema_municipio))
+        print(f"A tabela {table_municipio} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_municipio
+
+# Nova função para verificar e criar a tabela dim_escolaridade_mae
+def table_exist_escolaridade_mae(client, dataset_fonte):
+    table_escolaridade_mae = dataset_fonte.table("dim_escolaridade_mae")
+
+    schema_escolaridade_mae = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("descricao", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão escolaridade_mae no GCP...")
+    try:
+        client.get_table(table_escolaridade_mae, timeout=30)
+        print(f"A tabela {table_escolaridade_mae} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_escolaridade_mae} não encontrada! Criando tabela {table_escolaridade_mae}...")
+        client.create_table(bigquery.Table(table_escolaridade_mae, schema=schema_escolaridade_mae))
+        print(f"A tabela {table_escolaridade_mae} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_escolaridade_mae
+
 def load_data(tables_dfs, client, dataset_fonte):
         print("--------------------------------------------------------------------------")
         print("Carregando dados no GCP...")

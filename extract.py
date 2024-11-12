@@ -9,7 +9,7 @@ def download_files_mortalidade(data_folder):
         os.makedirs(data_folder)
 
     # baixar os arquivos dos anos desejados
-    for ano in range(2010, 2011):
+    for ano in range(2010, 2012):
         ano_baixar = str(ano)
 
         print('-------------------------------------------------')
@@ -42,13 +42,13 @@ def download_files_mortalidade(data_folder):
                 print('-------------------------------------------------')
 
 
-def download_files_nataliade(data_folder):
+def download_files_natalidade(data_folder):
     # Verifica se existe o diretório para os dados, se não existe cria ele
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
 
     # baixar os arquivos dos anos desejados
-    for ano in range(2010, 2011):
+    for ano in range(2010, 2012):
         ano_baixar = str(ano)
 
         print('-------------------------------------------------')

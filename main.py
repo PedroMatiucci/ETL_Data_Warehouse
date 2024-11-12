@@ -16,9 +16,11 @@ def etl_nascidos_vivos(file_key):
     # Verificar se o dataset já existe, se não existe, cria
     dataset_fonte = dataset_exist(client,dataset_name)
     # Verifica se as tabelas já existem, se não existe, cria
-    table_nascidos_vivos = table_exist(client,dataset_fonte)
+    table_nascidos_vivos = table_exist_natalidade(client,dataset_fonte)
 
-    df_nascidos_vivos = create_df_natalide(data_folder_mortalidade)
+    download_files_natalidade(data_folder_mortalidade)
+
+    df_nascidos_vivos = create_df_natalidade(data_folder_mortalidade)
 
     # Incluir tabelas e dfs em uma biblioteca
     tables_dfs = {table_nascidos_vivos:df_nascidos_vivos}
@@ -32,9 +34,9 @@ def etl_mortalidade(file_key):
     # Verificar se o dataset já existe, se não existe, cria
     dataset_fonte = dataset_exist(client, dataset_name)
     # Verifica se as tabelas já existem, se não existe, cria
-    table_mortalidade = table_exist(client, dataset_fonte)
+    table_mortalidade = table_exist_mortalidade(client, dataset_fonte)
 
-    download_files(data_folder)
+    download_files_mortalidade(data_folder_mortalidade)
 
     df_mortalidade = create_df_mortalidade(data_folder_mortalidade)
 
@@ -43,7 +45,7 @@ def etl_mortalidade(file_key):
 
 
 if __name__ == "__main__":
-    file_key = "keys/ml-na-saude-ed1fc3c1a83e.json"
+    file_key = "keys/datawarehouse-440722-b55120133f69.json"
     etl_nascidos_vivos(file_key)
     etl_mortalidade(file_key)
 

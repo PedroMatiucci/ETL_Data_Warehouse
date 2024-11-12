@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 
-def create_df_natalide(data_folder):
+def create_df_natalidade(data_folder):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, data_folder)
 
@@ -55,7 +55,6 @@ def create_df_natalide(data_folder):
 def create_df_mortalidade(data_folder):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, data_folder)
-    population_path = r'Data/populacao.csv'
 
     print("--------------------------------------------------------------------------")
     print("Carregando os dados dos arquivos extraídos, tratando e concatenando...")
@@ -68,6 +67,8 @@ def create_df_mortalidade(data_folder):
         if arquivo.endswith('.csv'):
             # Ler o arquivo CSV com o pandas
             df = pd.read_csv(os.path.join(file_path, arquivo), delimiter=';', encoding='ISO-8859-1', low_memory=False)
+            #Seleciona Apenas as Colunas que vamos Utilizar
+            df = df[['DTOBITO', 'DTNASC', 'CODMUNRES', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
             # Realizar transformação das datas de nascimento e óbito
             df['dt_obito'] = pd.to_datetime(df['DTOBITO'], format='%d%m%Y', errors='coerce')
             df['dt_nasc'] = pd.to_datetime(df['DTNASC'], format='%d%m%Y', errors='coerce')
@@ -80,36 +81,26 @@ def create_df_mortalidade(data_folder):
             df = df[df['idade'] >= 0]
             # Manter apenas dados de Menores de 5 anos
             df = df[df['idade'] <= 28]
-            # Criar as colunas ano_obito e quadrimestre_obito
-            df['ano_obito'] = df['dt_obito'].dt.year.astype(float).astype(pd.Int64Dtype()).astype(str).where(
-                df['dt_obito'].notna())
-            df['quad_obito'] = pd.cut(df['dt_obito'].dt.month, bins=[1, 5, 9, 13], labels=[1, 2, 3], right=False)
+            # Criar as colunas ano_obito e mes_obito
+            df['ano_obito'] = df['dt_obito'].dt.year
+            df['mes_obito'] = df['dt_obito'].dt.month
+
             # Extrair os 6 primeiros dígitos da coluna CODMUNRES
             df['cd_mun_res'] = df['CODMUNRES'].astype(str).str.slice(stop=6)
-            # Selecionar coluna desejadas
-            df = df[['ano_obito', 'quad_obito', 'dt_obito', 'dt_nasc', 'idade', 'cd_mun_res']]
-            # adiciona o dataframe à lista de dataframes
+
+            # Selecionar colunas desejadas
+            df = df[['ano_obito', 'mes_obito', 'cd_mun_res', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
+
+            # Adiciona o dataframe à lista de dataframes
             dfs.append(df)
 
-    # concatena os dataframes em um único dataframe final
-    df_group = pd.concat(dfs, ignore_index=True)
-    # Baixa a base de população por município
-    df_populacao = pd.read_csv(population_path, parse_dates=[0])
-    # Transformar id_municipio para apenas 6 digitos
-    df_populacao['id_municipio'] = df_populacao['id_municipio'].astype(str).str[:6]
-    # Alterar tipo de dados do ano
-    df_populacao['data'] = pd.to_datetime(df_populacao.ano, format='%Y', errors='coerce')
-    # Adicionar Coluna Para os quadrimestres
-    df_populacao['quad'] = pd.cut(df_populacao['data'].dt.month, bins=[1, 5, 9, 13], labels=[1, 2, 3], right=False)
-    df_populacao['ano'] = df_populacao['data'].dt.strftime('%Y')
-    df_populacao['quad'] = df_populacao['quad'].astype('int')
-    df_populacao.rename(columns={"id_municipio": "cd_mun_res"}, inplace=True)
-    df_group.rename(columns={"ano_obito": "ano", "quad_obito": "quad"}, inplace=True)
-    # Merge os dataframes com base nas condições especificadas
-    df_mortalidade_infantil = df_group.merge(df_populacao[['cd_mun_res', 'ano', 'quad', 'populacao']],
-                                             on=['ano', 'quad', 'cd_mun_res'], how='left')
-    df_mortalidade_infantil.drop(['ano'], axis=1, inplace=True)
-    # df_mortalidade_infantil['ano_obito'] = df_mortalidade_infantil['dt_obito'].dt.year.astype(float).astype(pd.Int64Dtype()).astype(str).where(df_mortalidade_infantil['dt_obito'].notna())
-    df_mortalidade_infantil.info()
+        # Concatena os dataframes em um único dataframe final
+        df_final = pd.concat(dfs, ignore_index=True)
+        grupos = df_final.groupby(['cd_mun_res', 'mes_obito', 'ano_obito', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS'])
+        df_final['numero_obitos'] = grupos['mes_obito'].transform('count')
+        # Agrupa os dados por mês, ano e demais colunas especificadas
+        df_grouped = df_final.groupby(
+            ['ano_obito', 'mes_obito', 'cd_mun_res', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']
+        ).sum().reset_index()
 
-    return df_mortalidade_infantil
+        return df_grouped

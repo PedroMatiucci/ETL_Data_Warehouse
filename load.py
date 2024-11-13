@@ -74,39 +74,35 @@ def table_exist_natalidade(client,dataset_fonte):
     return table_nascidos_vivos
 
 def table_exist_mortalidade(client, dataset_fonte):
-        ##########################################################################
-        #                    Cria as tabelas caso não existam                    #
-        ##########################################################################
+    # Tabela e schema da table_mortalidade
+    table_mortalidade = dataset_fonte.table("mortalidade_infantil")
 
-        # Tabela e schema da table_mortalidade
-        table_mortalidade = dataset_fonte.table("mortalidade_infantil")
+    schema_mortalidade = [
+        bigquery.SchemaField("dim_tempo_id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("dim_municipio_id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("dt_obito", "DATE", mode="REQUIRED"),
+        bigquery.SchemaField("dt_nasc", "DATE", mode="REQUIRED"),
+        bigquery.SchemaField("SEXO", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("RACACOR", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("ESCMAE", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("CAUSABAS", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("numero_obitos", "INTEGER", mode="REQUIRED"),
+    ]
 
-        schema_mortalidade = [
-            bigquery.SchemaField("ano_obito", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("mes_obito", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("dt_obito", "DATE", mode="REQUIRED"),
-            bigquery.SchemaField("dt_nasc", "DATE", mode="REQUIRED"),
-            bigquery.SchemaField("cd_mun_res", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("SEXO", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("RACACOR", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("ESCMAE", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("CAUSABAS", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("numero_obitos", "STRING", mode="REQUIRED"),
-        ]
-
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão mortalidade no GCP...")
+    try:
+        client.get_table(table_mortalidade, timeout=30)
+        print(f"A tabela {table_mortalidade} já existe!")
         print("--------------------------------------------------------------------------")
-        print("Verificando a existência das tabelas no GCP...")
-        try:
-            client.get_table(table_mortalidade, timeout=30)
-            print(f"A tabela {table_mortalidade} já existe!")
-            print("--------------------------------------------------------------------------")
-        except:
-            print(f"Tabela {table_mortalidade} não encontrada! Criando tabela {table_mortalidade}...")
-            client.create_table(bigquery.Table(table_mortalidade, schema=schema_mortalidade))
-            print(f"A tabela {table_mortalidade} foi criada.")
-            print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_mortalidade} não encontrada! Criando tabela {table_mortalidade}...")
+        client.create_table(bigquery.Table(table_mortalidade, schema=schema_mortalidade))
+        print(f"A tabela {table_mortalidade} foi criada.")
+        print("--------------------------------------------------------------------------")
 
-        return table_mortalidade
+    return table_mortalidade
+
 
 # Nova função para verificar e criar a tabela dim_tempo
 def table_exist_tempo(client, dataset_fonte):
@@ -227,17 +223,17 @@ def table_exist_escolaridade_mae(client, dataset_fonte):
     return table_escolaridade_mae
 
 def load_data(tables_dfs, client, dataset_fonte):
-        print("--------------------------------------------------------------------------")
-        print("Carregando dados no GCP...")
-        for tabela, df in tables_dfs.items():
-            table_ref = client.dataset(dataset_fonte.dataset_id).table(tabela.table_id)
-            job_config = bigquery.LoadJobConfig()
-            job_config.write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE
-            job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-            job.result()
-            print(f"Dados carregados na tabela {tabela}.")
+    print("--------------------------------------------------------------------------")
+    print("Carregando dados no GCP...")
+    for tabela, df in tables_dfs.items():
+        table_ref = client.dataset(dataset_fonte.dataset_id).table(tabela.table_id)
+        job_config = bigquery.LoadJobConfig()
+        job_config.write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE
+        job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+        job.result()
+        print(f"Dados carregados na tabela {tabela}.")
 
-        print("--------------------------------------------------------------------------")
-        print("##########################################################################")
-        print("#                         Dados carregados no GCP                        #")
-        print("##########################################################################")
+    print("--------------------------------------------------------------------------")
+    print("##########################################################################")
+    print("#                         Dados carregados no GCP                        #")
+    print("##########################################################################")

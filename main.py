@@ -38,7 +38,8 @@ def etl_mortalidade(file_key):
 
     download_files_mortalidade(data_folder_mortalidade)
 
-    df_mortalidade = create_df_mortalidade(data_folder_mortalidade)
+    # Passa client e dataset_fonte para a função
+    df_mortalidade = create_df_mortalidade(data_folder_mortalidade, client, dataset_fonte)
 
     tables_dfs = {table_mortalidade: df_mortalidade}
     load_data(tables_dfs, client, dataset_fonte)
@@ -146,11 +147,11 @@ def etl_escolaridade_mae(file_key):
 if __name__ == "__main__":
     file_key = "keys/datawarehouse-440722-b55120133f69.json"
 
-    # etl_tempo(file_key)
+    #etl_tempo(file_key)
     #etl_raca(file_key)
     #etl_sexo(file_key)
     #etl_municipio(file_key)
-    etl_escolaridade_mae(file_key)
+    #etl_escolaridade_mae(file_key)
 
     #etl_nascidos_vivos(file_key)
-    #etl_mortalidade(file_key)
+    etl_mortalidade(file_key)

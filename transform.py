@@ -26,8 +26,11 @@ def create_df_natalidade(data_folder):
             df = df.dropna(subset=['dt_nasc'])
 
             # Criar as colunas ano_nasc e quadrimestre_nasc e mes_nasc
-            df['ano'] = df['dt_nasc'].dt.year.astype(float).astype(pd.Int64Dtype()).astype(str).where(
-                df['dt_nasc'].notna())
+            df['ano'] = pd.to_datetime(
+                df['dt_nasc'].dt.year.astype('Int64').where(df['dt_nasc'].notna(), None),
+                format='%Y',
+                errors='coerce'
+            )
             df['mes'] = df['dt_nasc'].dt.month
             # Extrair os 6 primeiros dígitos da coluna CODMUNRES
             df['cd_mun_res'] = df['CODMUNRES'].astype(str).str.slice(stop=6)
@@ -52,7 +55,7 @@ def create_df_natalidade(data_folder):
     return df_natalidade
 
 
-def create_df_mortalidade(data_folder):
+def create_df_mortalidade(data_folder, df_natalidade):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, data_folder)
 
@@ -102,7 +105,28 @@ def create_df_mortalidade(data_folder):
         df_grouped = df_final.groupby(
             ['ano_obito', 'mes_obito', 'cd_mun_res', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']
         ).sum().reset_index()
+        df_grouped = df_grouped.rename(columns={
+            'ano_obito': 'ano',
+            'mes_obito': 'mes'
+        })
+        df_grouped['mes'] = df_grouped['mes'].astype(str)
+        df_grouped['ano'] = df_grouped['ano'].astype(str)
+        df_natalidade['mes'] = df_natalidade['mes'].astype(str)
 
+        df_natalidade['ano'] = pd.to_datetime(df_natalidade['ano'])
+        df_natalidade['ano'] = df_natalidade['ano'].dt.year
+        df_natalidade['ano'] = df_natalidade['ano'].astype(str)
+
+        df_grouped = pd.merge(
+            df_grouped,
+            df_natalidade[['ano', 'mes','cd_mun_res', "total_nascidos"]],
+            on=['ano', 'mes', 'cd_mun_res'],
+            how='left'
+        )
+        print(df_natalidade[['ano', 'mes', 'total_nascidos', 'cd_mun_res']].head())
+        print(df_grouped.head())
+        df_grouped['taxa_mortalidade'] = (df_grouped['numero_obitos'] / df_grouped['total_nascidos']) * 1000
+        print(df_grouped.head())
         return df_grouped
 
 # Nova função para criar a dimensão tempo

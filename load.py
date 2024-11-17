@@ -82,8 +82,8 @@ def table_exist_mortalidade(client, dataset_fonte):
         table_mortalidade = dataset_fonte.table("mortalidade_infantil")
 
         schema_mortalidade = [
-            bigquery.SchemaField("ano_obito", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("mes_obito", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("ano", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("mes", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("dt_obito", "DATE", mode="REQUIRED"),
             bigquery.SchemaField("dt_nasc", "DATE", mode="REQUIRED"),
             bigquery.SchemaField("cd_mun_res", "STRING", mode="REQUIRED"),
@@ -91,7 +91,9 @@ def table_exist_mortalidade(client, dataset_fonte):
             bigquery.SchemaField("RACACOR", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("ESCMAE", "STRING", mode="REQUIRED"),
             bigquery.SchemaField("CAUSABAS", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("numero_obitos", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("numero_obitos", "INTEGER", mode="REQUIRED"),
+            bigquery.SchemaField("taxa_mortaliadade", 'FLOAT', mode="REQUIRED"),
+            bigquery.SchemaField("total_nascidos", 'INTEGER', mode="REQUIRED")
         ]
 
         print("--------------------------------------------------------------------------")

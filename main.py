@@ -3,10 +3,6 @@ from load import *
 from extract import *
 
 
-#Todo Criar as Databases do Bigquery
-#Todo Atualizar a Criacao Das Tabelas
-#Todo Adequear a transformacao para os Dados que escolhemos(Pegar nos Slides as Novas Colunas)
-#Todo Criar o Extract para os dados de Natalidade(Testar)
 def etl_nascidos_vivos(file_key):
     dataset_name = "mortalidade_infantil"
     data_folder_mortalidade = "DadosNascidosVivos"
@@ -25,8 +21,9 @@ def etl_nascidos_vivos(file_key):
     # Incluir tabelas e dfs em uma biblioteca
     tables_dfs = {table_nascidos_vivos:df_nascidos_vivos}
     load_data(tables_dfs,client,dataset_fonte)
+    return df_nascidos_vivos
 
-def etl_mortalidade(file_key):
+def etl_mortalidade(file_key, df_natalidade):
     dataset_name = "mortalidade_infantil"
     data_folder_mortalidade = "DadosMortalidade"
 
@@ -38,7 +35,7 @@ def etl_mortalidade(file_key):
 
     download_files_mortalidade(data_folder_mortalidade)
 
-    df_mortalidade = create_df_mortalidade(data_folder_mortalidade)
+    df_mortalidade = create_df_mortalidade(data_folder_mortalidade, df_natalidade)
 
     tables_dfs = {table_mortalidade: df_mortalidade}
     load_data(tables_dfs, client, dataset_fonte)
@@ -146,11 +143,10 @@ def etl_escolaridade_mae(file_key):
 if __name__ == "__main__":
     file_key = "keys/datawarehouse-440722-b55120133f69.json"
 
-    # etl_tempo(file_key)
-    #etl_raca(file_key)
-    #etl_sexo(file_key)
-    #etl_municipio(file_key)
+    etl_tempo(file_key)
+    etl_raca(file_key)
+    etl_sexo(file_key)
+    etl_municipio(file_key)
     etl_escolaridade_mae(file_key)
-
-    #etl_nascidos_vivos(file_key)
-    #etl_mortalidade(file_key)
+    df_nascidos = etl_nascidos_vivos(file_key)
+    etl_mortalidade(file_key, df_nascidos)

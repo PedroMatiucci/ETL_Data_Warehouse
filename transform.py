@@ -25,26 +25,22 @@ def create_df_natalidade(data_folder):
             # Excluir dados nulos para data de nascimento
             df = df.dropna(subset=['dt_nasc'])
 
-            # Criar as colunas ano_nasc e quadrimestre_nasc e mes_nasc
-            df['ano'] = pd.to_datetime(
-                df['dt_nasc'].dt.year.astype('Int64').where(df['dt_nasc'].notna(), None),
-                format='%Y',
-                errors='coerce'
-            )
-            df['mes'] = df['dt_nasc'].dt.month
+            # Criar as colunas ano e mes como strings
+            df['ano'] = df['dt_nasc'].dt.year.astype(str)
+            df['mes'] = df['dt_nasc'].dt.month.astype(str)
             # Extrair os 6 primeiros dígitos da coluna CODMUNRES
             df['cd_mun_res'] = df['CODMUNRES'].astype(str).str.slice(stop=6)
 
             # Selecionar coluna desejadas
-            df = df[['ano', 'dt_nasc', 'mes', 'cd_mun_res']]
+            df = df[['ano', 'mes', 'cd_mun_res']]
             # adiciona o dataframe à lista de dataframes
             dfs.append(df)
-            print('arquivo concluido indo para o prox')
+            print('Arquivo concluído, indo para o próximo')
 
-    # concatena os dataframes em um único dataframe final
+    # Concatenar os dataframes em um único dataframe final
     df_group = pd.concat(dfs, ignore_index=True)
     grupos = df_group.groupby(['cd_mun_res', 'mes', 'ano'])
-    df_group['total_nascidos'] = grupos['dt_nasc'].transform('count')
+    df_group['total_nascidos'] = grupos['mes'].transform('count')
     df_agrupado_natalidade = df_group[['cd_mun_res', 'ano', 'mes']].groupby(
         ['cd_mun_res', 'ano', 'mes']).sum().reset_index()
     df_natalidade = df_agrupado_natalidade.merge(
@@ -54,80 +50,99 @@ def create_df_natalidade(data_folder):
 
     return df_natalidade
 
-
-def create_df_mortalidade(data_folder, df_natalidade):
+def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, data_folder)
 
     print("--------------------------------------------------------------------------")
     print("Carregando os dados dos arquivos extraídos, tratando e concatenando...")
 
-    # lista com os dataframes já tratados
+    # Carregar a tabela dim_tempo
+    table_tempo = client.get_table(dataset_fonte.table("dim_tempo"))
+    df_tempo = client.list_rows(table_tempo).to_dataframe()
+
+    # Converter colunas 'ano' e 'mes' em df_tempo para string
+    df_tempo['ano'] = df_tempo['ano'].astype(str)
+    df_tempo['mes'] = df_tempo['mes'].astype(str)
+
+    # Carregar a tabela dim_municipio
+    table_municipio = client.get_table(dataset_fonte.table("dim_municipio"))
+    df_municipio = client.list_rows(table_municipio).to_dataframe()
+
+    # Converter as colunas 'ibge' para string em df_municipio
+    df_municipio['ibge'] = df_municipio['ibge'].astype(str)
+
+    # Garantir que a coluna cd_mun_res em df_natalidade seja string
+    df_natalidade['cd_mun_res'] = df_natalidade['cd_mun_res'].astype(str)
+
+    # Lista com os dataframes já tratados
     dfs = []
 
-    # Função para gerar o dataframe
+    # Processar arquivos de mortalidade
     for arquivo in os.listdir(file_path):
         if arquivo.endswith('.csv'):
             # Ler o arquivo CSV com o pandas
             df = pd.read_csv(os.path.join(file_path, arquivo), delimiter=';', encoding='ISO-8859-1', low_memory=False)
-            #Seleciona Apenas as Colunas que vamos Utilizar
+            # Seleciona Apenas as Colunas que vamos Utilizar
             df = df[['DTOBITO', 'DTNASC', 'CODMUNRES', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
+
             # Realizar transformação das datas de nascimento e óbito
             df['dt_obito'] = pd.to_datetime(df['DTOBITO'], format='%d%m%Y', errors='coerce')
             df['dt_nasc'] = pd.to_datetime(df['DTNASC'], format='%d%m%Y', errors='coerce')
-            # Excluir dados nulos para data de nascimento e de óbito
-            df = df.dropna(subset=['dt_nasc'])
-            df = df.dropna(subset=['dt_obito'])
-            # Criar a coluna idade em dias
-            df['idade'] = ((df['dt_obito'] - df['dt_nasc']).dt.days)
-            # Manter apenas dados com idades válidas
-            df = df[df['idade'] >= 0]
-            # Manter apenas dados de Menores de 5 anos
-            df = df[df['idade'] <= 28]
-            # Criar as colunas ano_obito e mes_obito
-            df['ano_obito'] = df['dt_obito'].dt.year
-            df['mes_obito'] = df['dt_obito'].dt.month
 
-            # Extrair os 6 primeiros dígitos da coluna CODMUNRES
+            # Excluir dados nulos para data de nascimento e de óbito
+            df = df.dropna(subset=['dt_nasc', 'dt_obito'])
+
+            # Criar a coluna idade em dias e filtrar por idades válidas e menores de 28 dias
+            df['idade'] = (df['dt_obito'] - df['dt_nasc']).dt.days
+            df = df[(df['idade'] >= 0) & (df['idade'] <= 28)]
+
+            # Criar as colunas ano_obito e mes_obito e converter para string
+            df['ano'] = df['dt_obito'].dt.year.astype(str)
+            df['mes'] = df['dt_obito'].dt.month.astype(str)
+
+            # Garantir que 'cd_mun_res' seja string antes do merge
             df['cd_mun_res'] = df['CODMUNRES'].astype(str).str.slice(stop=6)
 
-            # Selecionar colunas desejadas
-            df = df[['ano_obito', 'mes_obito', 'cd_mun_res', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
-
-            # Adiciona o dataframe à lista de dataframes
+            # Adicionar ao dataframe
             dfs.append(df)
 
-        # Concatena os dataframes em um único dataframe final
-        df_final = pd.concat(dfs, ignore_index=True)
-        grupos = df_final.groupby(['cd_mun_res', 'mes_obito', 'ano_obito', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS'])
-        df_final['numero_obitos'] = grupos['mes_obito'].transform('count')
-        # Agrupa os dados por mês, ano e demais colunas especificadas
-        df_grouped = df_final.groupby(
-            ['ano_obito', 'mes_obito', 'cd_mun_res', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']
-        ).sum().reset_index()
-        df_grouped = df_grouped.rename(columns={
-            'ano_obito': 'ano',
-            'mes_obito': 'mes'
-        })
-        df_grouped['mes'] = df_grouped['mes'].astype(str)
-        df_grouped['ano'] = df_grouped['ano'].astype(str)
-        df_natalidade['mes'] = df_natalidade['mes'].astype(str)
+    # Concatenar os dataframes em um único dataframe final
+    df_final = pd.concat(dfs, ignore_index=True)
 
-        df_natalidade['ano'] = pd.to_datetime(df_natalidade['ano'])
-        df_natalidade['ano'] = df_natalidade['ano'].dt.year
-        df_natalidade['ano'] = df_natalidade['ano'].astype(str)
+    # Mapear `cd_mun_res` para o ID do município
+    df_final = df_final.merge(df_municipio[['ibge', 'id']], left_on='cd_mun_res', right_on='ibge', how='left')
+    df_final = df_final.rename(columns={'id': 'dim_municipio_id'})
 
-        df_grouped = pd.merge(
-            df_grouped,
-            df_natalidade[['ano', 'mes','cd_mun_res', "total_nascidos"]],
-            on=['ano', 'mes', 'cd_mun_res'],
-            how='left'
-        )
-        print(df_natalidade[['ano', 'mes', 'total_nascidos', 'cd_mun_res']].head())
-        print(df_grouped.head())
-        df_grouped['taxa_mortalidade'] = (df_grouped['numero_obitos'] / df_grouped['total_nascidos']) * 1000
-        print(df_grouped.head())
-        return df_grouped
+    # Calcular número de óbitos
+    df_final['numero_obitos'] = df_final.groupby(['ano', 'mes', 'dim_municipio_id'])['cd_mun_res'].transform('count')
+
+    # Mesclar com dados de natalidade para adicionar `total_nascidos`
+    df_final = df_final.merge(
+        df_natalidade[['ano', 'mes', 'cd_mun_res', 'total_nascidos']],
+        on=['ano', 'mes', 'cd_mun_res'],
+        how='left'
+    )
+
+    # Calcular a taxa de mortalidade
+    df_final['taxa_mortalidade'] = (df_final['numero_obitos'] / df_final['total_nascidos']) * 1000
+
+    # Substituir ano e mes pelos IDs da dimensão tempo
+    df_final = df_final.merge(df_tempo, on=['ano', 'mes'], how='left')
+    df_final = df_final.rename(columns={'id': 'dim_tempo_id'})
+
+    # Renomear colunas para apontar para tabelas dimensão
+    df_final = df_final.rename(columns={
+        'SEXO': 'dim_sexo_id',
+        'RACACOR': 'dim_raca_id',
+        'ESCMAE': 'dim_escolaridade_mae_id'
+    })
+
+    # Selecionar colunas finais
+    df_final = df_final[['dim_tempo_id', 'dim_municipio_id', 'dim_sexo_id', 'dim_raca_id',
+                         'dim_escolaridade_mae_id', 'CAUSABAS', 'numero_obitos', 'total_nascidos', 'taxa_mortalidade']]
+
+    return df_final
 
 # Nova função para criar a dimensão tempo
 def create_df_tempo(start_year=2010, end_year=2020):
@@ -208,11 +223,15 @@ def create_df_escolaridade_mae():
     Gera a dimensão escolaridade_mae com colunas 'id' e 'descricao' para as categorias de escolaridade.
     """
     data = {
-        'id': [0, 1, 2],
+        'id': [0, 1, 2, 3, 4, 5, 9],
         'descricao': [
             'Sem escolaridade',
             'Fundamental I (1ª a 4ª série)',
-            'Fundamental II (5ª a 8ª série)'
+            'Fundamental II (5ª a 8ª série)',
+            'Médio (antigo 2º Grau)',
+            'Superior incompleto',
+            'Superior completo',
+            'Ignorado'
         ]
     }
     dim_escolaridade_mae = pd.DataFrame(data)

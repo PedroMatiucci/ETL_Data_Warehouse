@@ -35,7 +35,7 @@ def etl_mortalidade(file_key, df_natalidade):
 
     download_files_mortalidade(data_folder_mortalidade)
 
-    df_mortalidade = create_df_mortalidade(data_folder_mortalidade, df_natalidade)
+    df_mortalidade = create_df_mortalidade(data_folder_mortalidade, client, dataset_fonte, df_natalidade)
 
     tables_dfs = {table_mortalidade: df_mortalidade}
     load_data(tables_dfs, client, dataset_fonte)

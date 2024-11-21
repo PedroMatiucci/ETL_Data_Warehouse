@@ -9,7 +9,7 @@ def download_files_mortalidade(data_folder):
         os.makedirs(data_folder)
 
     # baixar os arquivos dos anos desejados
-    for ano in range(2010, 2020):
+    for ano in range(2010, 2013):
         ano_baixar = str(ano)
 
         print('-------------------------------------------------')
@@ -24,7 +24,7 @@ def download_files_mortalidade(data_folder):
         if(os.path.exists(f'{data_folder}/{file}')):
             print(f'Arquivo {file} já foi baixado baixado')
         else:
-        # Tenta baixar o arquivo
+            # Tenta baixar o arquivo
             try:
                 print(f'Baixando o arquivo {file}')
                 request.urlretrieve(f'{link}', f'{data_folder}/{file}')
@@ -48,7 +48,7 @@ def download_files_natalidade(data_folder):
         os.makedirs(data_folder)
 
     # baixar os arquivos dos anos desejados
-    for ano in range(2010, 2020):
+    for ano in range(2010, 2013):
         ano_baixar = str(ano)
 
         print('-------------------------------------------------')
@@ -63,7 +63,7 @@ def download_files_natalidade(data_folder):
         if(os.path.exists(f'{data_folder}/{file}')):
             print(f'Arquivo {file} já foi baixado baixado')
         else:
-        # Tenta baixar o arquivo
+            # Tenta baixar o arquivo
             try:
                 print(f'Baixando o arquivo {file}')
                 request.urlretrieve(f'{link}', f'{data_folder}/{file}')

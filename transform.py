@@ -84,20 +84,15 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
             # Ler o arquivo CSV com o pandas
             df = pd.read_csv(os.path.join(file_path, arquivo), delimiter=';', encoding='ISO-8859-1', low_memory=False)
             # Seleciona Apenas as Colunas que vamos Utilizar
-            df = df[['DTOBITO', 'DTNASC', 'CODMUNRES', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
+            df = df[['DTOBITO', 'CODMUNRES', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']]
 
-            # Realizar transformação das datas de nascimento e óbito
+            # Realizar transformação das datas de óbito
             df['dt_obito'] = pd.to_datetime(df['DTOBITO'], format='%d%m%Y', errors='coerce')
-            df['dt_nasc'] = pd.to_datetime(df['DTNASC'], format='%d%m%Y', errors='coerce')
 
-            # Excluir dados nulos para data de nascimento e de óbito
-            df = df.dropna(subset=['dt_nasc', 'dt_obito'])
+            # Excluir dados nulos para data de óbito
+            df = df.dropna(subset=['dt_obito'])
 
-            # Criar a coluna idade em dias e filtrar por idades válidas e menores de 28 dias
-            df['idade'] = (df['dt_obito'] - df['dt_nasc']).dt.days
-            df = df[(df['idade'] >= 0) & (df['idade'] <= 28)]
-
-            # Criar as colunas ano_obito e mes_obito e converter para string
+            # Criar as colunas ano e mes e converter para string
             df['ano'] = df['dt_obito'].dt.year.astype(str)
             df['mes'] = df['dt_obito'].dt.month.astype(str)
 
@@ -114,13 +109,16 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
     df_final = df_final.merge(df_municipio[['ibge', 'id']], left_on='cd_mun_res', right_on='ibge', how='left')
     df_final = df_final.rename(columns={'id': 'dim_municipio_id'})
 
-    # Calcular número de óbitos
-    df_final['numero_obitos'] = df_final.groupby(['ano', 'mes', 'dim_municipio_id'])['cd_mun_res'].transform('count')
+    # Calcular número de óbitos considerando as características de morte
+    df_final['numero_obitos'] = df_final.groupby(
+        ['ano', 'mes', 'dim_municipio_id', 'SEXO', 'RACACOR', 'ESCMAE', 'CAUSABAS']
+    )['dim_municipio_id'].transform('count')
 
     # Mesclar com dados de natalidade para adicionar `total_nascidos`
     df_final = df_final.merge(
         df_natalidade[['ano', 'mes', 'cd_mun_res', 'total_nascidos']],
-        on=['ano', 'mes', 'cd_mun_res'],
+        left_on=['ano', 'mes', 'cd_mun_res'],
+        right_on=['ano', 'mes', 'cd_mun_res'],
         how='left'
     )
 

@@ -93,7 +93,9 @@ def table_exist_mortalidade(client, dataset_fonte):
         bigquery.SchemaField("CAUSABAS", "STRING", mode="REQUIRED"),
         bigquery.SchemaField("numero_obitos", "INTEGER", mode="REQUIRED"),
         bigquery.SchemaField("taxa_mortaliadade", 'FLOAT', mode="REQUIRED"),
-        bigquery.SchemaField("total_nascidos", 'INTEGER', mode="REQUIRED")
+        bigquery.SchemaField("total_nascidos", 'INTEGER', mode="REQUIRED"),
+        bigquery.SchemaField("dim_categoria_cid_id", 'INTEGER', mode="REQUIRED"),
+        bigquery.SchemaField("dim_subcategoria_cid_id", 'INTEGER', mode="REQUIRED"),
     ]
 
     print("--------------------------------------------------------------------------")

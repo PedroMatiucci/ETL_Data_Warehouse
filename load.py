@@ -228,6 +228,53 @@ def table_exist_escolaridade_mae(client, dataset_fonte):
 
     return table_escolaridade_mae
 
+
+def table_exist_subcategoria(client, dataset_fonte):
+    table_subcategoria = dataset_fonte.table("dim_subcategoriacid")
+
+    schema_subcategoria = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("codigo_subcategoria", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("descricao", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão município no GCP...")
+    try:
+        client.get_table(table_subcategoria, timeout=30)
+        print(f"A tabela {table_subcategoria} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_subcategoria} não encontrada! Criando tabela {table_subcategoria}...")
+        client.create_table(bigquery.Table(table_subcategoria, schema=schema_subcategoria))
+        print(f"A tabela {table_subcategoria} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_subcategoria
+
+def table_exist_categoria(client, dataset_fonte):
+    table_categoria = dataset_fonte.table("dim_categoriacid")
+
+    schema_categoria = [
+        bigquery.SchemaField("id", "INTEGER", mode="REQUIRED"),
+        bigquery.SchemaField("codigo_categoria", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("descricao", "STRING", mode="REQUIRED"),
+    ]
+
+    print("--------------------------------------------------------------------------")
+    print("Verificando a existência da tabela de dimensão município no GCP...")
+    try:
+        client.get_table(table_categoria, timeout=30)
+        print(f"A tabela {table_categoria} já existe!")
+        print("--------------------------------------------------------------------------")
+    except:
+        print(f"Tabela {table_categoria} não encontrada! Criando tabela {table_categoria}...")
+        client.create_table(bigquery.Table(table_categoria, schema=schema_categoria))
+        print(f"A tabela {table_categoria} foi criada.")
+        print("--------------------------------------------------------------------------")
+
+    return table_categoria
+
 def load_data(tables_dfs, client, dataset_fonte):
     print("--------------------------------------------------------------------------")
     print("Carregando dados no GCP...")

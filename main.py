@@ -140,6 +140,46 @@ def etl_escolaridade_mae(file_key):
     tables_dfs = {table_escolaridade_mae: df_escolaridade_mae}
     load_data(tables_dfs, client, dataset_fonte)
 
+def etl_categoria_cid(file_key):
+    dataset_name = "mortalidade_infantil"
+    path = "Data/CID-10-CATEGORIAS.csv"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de município já existe, se não, cria
+    table_categoria_cid = table_exist_categoria(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão município
+    df_categoria_cid = create_df_categorias_cid(path)
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_categoria_cid: df_categoria_cid}
+    load_data(tables_dfs, client, dataset_fonte)
+
+def etl_subcategoria_cid(file_key):
+    dataset_name = "mortalidade_infantil"
+    path = "Data/CID-10-SUBCATEGORIAS.csv"
+
+    # Conexão com o GCP
+    client = gcp_connection(file_key)
+
+    # Verificar se o dataset já existe, se não existe, cria
+    dataset_fonte = dataset_exist(client, dataset_name)
+
+    # Verifica se a tabela de município já existe, se não, cria
+    table_subcategoria_cid = table_exist_subcategoria(client, dataset_fonte)
+
+    # Gera o dataframe da dimensão município
+    df_subcategoria_cid = create_df_subcategorias_cid(path)
+
+    # Incluir tabela e dataframe em um dicionário para carregamento
+    tables_dfs = {table_subcategoria_cid: df_subcategoria_cid}
+    load_data(tables_dfs, client, dataset_fonte)
+
 if __name__ == "__main__":
     file_key = "keys/datawarehouse-440722-b55120133f69.json"
 
@@ -148,5 +188,7 @@ if __name__ == "__main__":
     etl_sexo(file_key)
     etl_municipio(file_key)
     etl_escolaridade_mae(file_key)
+    etl_categoria_cid(file_key)
+    etl_subcategoria_cid(file_key)
     df_nascidos = etl_nascidos_vivos(file_key)
     etl_mortalidade(file_key, df_nascidos)

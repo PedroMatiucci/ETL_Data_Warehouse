@@ -234,3 +234,44 @@ def create_df_escolaridade_mae():
     }
     dim_escolaridade_mae = pd.DataFrame(data)
     return dim_escolaridade_mae
+
+
+
+def create_df_categorias_cid(file_path):
+    try:
+        # Carrega o arquivo CSV em um dataframe com codificação utf-8
+        df_cid = pd.read_csv(file_path, delimiter=';', encoding='ISO-8859-1', low_memory=False)
+
+    except UnicodeDecodeError:
+        # Se utf-8 falhar, tenta com ISO-8859-1
+        df_cid = pd.read_csv(file_path, delimiter=';', encoding='utf-8', low_memory=False
+                             )
+
+    # Renomeia colunas para seguir a convenção do DW
+    df_cid = df_cid.drop(columns=['CLASSIF', 'DESCRABREV', 'REFER', 'EXCLUIDOS'])
+    df_cid = df_cid.rename(columns={'CAT': 'codigo_categoria', 'DESCRICAO': 'descricao'})
+
+    # Cria uma coluna ID único para a tabela dimensão
+    df_cid['id'] = range(1, len(df_cid) + 1)
+
+    df_cid = df_cid[['codigo_categoria', 'id', 'descricao']]
+
+    return df_cid
+
+def create_df_subcategorias_cid(file_path):
+    try:
+        # Carrega o arquivo CSV em um dataframe com codificação utf-8
+        df_cid = pd.read_csv(file_path, delimiter=';', encoding='ISO-8859-1', low_memory=False)
+
+    except UnicodeDecodeError:
+        # Se utf-8 falhar, tenta com ISO-8859-1
+        df_cid = pd.read_csv(file_path, delimiter=';', encoding='utf-8', low_memory=False
+                             )
+    df_cid = df_cid.drop(columns=['CLASSIF', 'DESCRABREV', 'REFER', 'EXCLUIDOS', 'RESTRSEXO', 'CAUSAOBITO', 'DESCRABREV', 'REFER', 'EXCLUIDOS'])
+    df_cid = df_cid.rename(columns={'SUBCAT': 'codigo_subcategoria', 'DESCRICAO': 'descricao'})
+
+    # Cria uma coluna ID único para a tabela dimensão
+    df_cid['id'] = range(1, len(df_cid) + 1)
+    df_cid = df_cid[['codigo_subcategoria', 'id', 'descricao']]
+
+    return df_cid

@@ -137,8 +137,8 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
     df_final = df_final.merge(df_tempo, on=['ano', 'mes'], how='left')
     df_final = df_final.rename(columns={'id': 'dim_tempo_id'})
 
-
-    df_final = df_final.merge(df_cid_categoria[['codigo_categoria', 'id']], left_on='CAUSABAS', right_on='codigo_categoria', how='left')
+    df_final['codigo_categoria'] = df_final['CAUSABAS'].str[:3]
+    df_final = df_final.merge(df_cid_categoria[['codigo_categoria', 'id']], on='codigo_categoria', how='left')
     df_final = df_final.rename(columns={'id': 'dim_categoria_cid_id'})
 
     df_final = df_final.merge(df_cid_subcategoria[['codigo_subcategoria', 'id']], left_on='CAUSABAS', right_on=['codigo_subcategoria'], how='left')

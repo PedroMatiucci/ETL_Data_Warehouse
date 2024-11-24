@@ -174,7 +174,7 @@ def etl_subcategoria_cid(file_key):
     table_subcategoria_cid = table_exist_subcategoria(client, dataset_fonte)
 
     # Gera o dataframe da dimensão município
-    df_subcategoria_cid = create_df_subcategorias_cid(path)
+    df_subcategoria_cid = create_df_subcategorias_cid(path, client, dataset_fonte)
 
     # Incluir tabela e dataframe em um dicionário para carregamento
     tables_dfs = {table_subcategoria_cid: df_subcategoria_cid}

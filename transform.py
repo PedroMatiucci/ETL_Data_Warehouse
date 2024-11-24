@@ -61,10 +61,6 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
     table_tempo = client.get_table(dataset_fonte.table("dim_tempo"))
     df_tempo = client.list_rows(table_tempo).to_dataframe()
 
-
-    table_cid_categoria = client.get_table(dataset_fonte.table("dim_categoriacid"))
-    df_cid_categoria = client.list_rows(table_cid_categoria).to_dataframe()
-
     table_cid_subcategoria = client.get_table(dataset_fonte.table("dim_subcategoriacid"))
     df_cid_subcategoria = client.list_rows(table_cid_subcategoria).to_dataframe()
 
@@ -137,10 +133,6 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
     df_final = df_final.merge(df_tempo, on=['ano', 'mes'], how='left')
     df_final = df_final.rename(columns={'id': 'dim_tempo_id'})
 
-    df_final['codigo_categoria'] = df_final['CAUSABAS'].str[:3]
-    df_final = df_final.merge(df_cid_categoria[['codigo_categoria', 'id']], on='codigo_categoria', how='left')
-    df_final = df_final.rename(columns={'id': 'dim_categoria_cid_id'})
-
     df_final = df_final.merge(df_cid_subcategoria[['codigo_subcategoria', 'id']], left_on='CAUSABAS', right_on=['codigo_subcategoria'], how='left')
     df_final = df_final.rename(columns={'id': 'dim_subcategoria_cid_id'})
 
@@ -153,7 +145,7 @@ def create_df_mortalidade(data_folder, client, dataset_fonte, df_natalidade):
 
     # Selecionar colunas finais
     df_final = df_final[['dim_tempo_id', 'dim_municipio_id', 'dim_sexo_id', 'dim_raca_id',
-                         'dim_escolaridade_mae_id', 'CAUSABAS', 'numero_obitos', 'total_nascidos', 'taxa_mortalidade', 'dim_categoria_cid_id', 'dim_subcategoria_cid_id']]
+                         'dim_escolaridade_mae_id', 'CAUSABAS', 'numero_obitos', 'total_nascidos', 'taxa_mortalidade', 'dim_subcategoria_cid_id']]
 
     return df_final
 
@@ -273,7 +265,7 @@ def create_df_categorias_cid(file_path):
 
     return df_cid
 
-def create_df_subcategorias_cid(file_path):
+def create_df_subcategorias_cid(file_path, client, dataset_fonte):
     try:
         # Carrega o arquivo CSV em um dataframe com codificação utf-8
         df_cid = pd.read_csv(file_path, delimiter=';', encoding='ISO-8859-1', low_memory=False)
@@ -282,11 +274,20 @@ def create_df_subcategorias_cid(file_path):
         # Se utf-8 falhar, tenta com ISO-8859-1
         df_cid = pd.read_csv(file_path, delimiter=';', encoding='utf-8', low_memory=False
                              )
+
+    table_cid_categoria = client.get_table(dataset_fonte.table("dim_categoriacid"))
+    df_cid_categoria = client.list_rows(table_cid_categoria).to_dataframe()
+
     df_cid = df_cid.drop(columns=['CLASSIF', 'DESCRABREV', 'REFER', 'EXCLUIDOS', 'RESTRSEXO', 'CAUSAOBITO', 'DESCRABREV', 'REFER', 'EXCLUIDOS'])
     df_cid = df_cid.rename(columns={'SUBCAT': 'codigo_subcategoria', 'DESCRICAO': 'descricao'})
 
+    df_cid['codigo_categoria'] = df_cid['codigo_subcategoria'].str[:3]
+    df_cid = df_cid.merge(df_cid_categoria[['codigo_categoria', 'id']], on='codigo_categoria', how='left')
+    df_cid = df_cid.rename(columns={'id': 'dim_categoria_cid_id'})
+
+
     # Cria uma coluna ID único para a tabela dimensão
     df_cid['id'] = range(1, len(df_cid) + 1)
-    df_cid = df_cid[['codigo_subcategoria', 'id', 'descricao']]
+    df_cid = df_cid[['codigo_subcategoria', 'id', 'descricao', 'dim_categoria_cid_id']]
 
     return df_cid
